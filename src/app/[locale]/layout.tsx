@@ -1,53 +1,47 @@
-import '@/styles/global.css';
+// src/app/[locale]/layout.tsx
+import '@/styles/global.css'
+import { ReactNode } from 'react'
+import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
+import { NextIntlClientProvider } from 'next-intl'
+import { getMessages } from 'next-intl/server'
 
-import type { Metadata } from 'next';
-import { NextIntlClientProvider, hasLocale } from 'next-intl';
-import { setRequestLocale } from 'next-intl/server';
-import { notFound } from 'next/navigation';
+import { AllLocales } from '@/utils/AppConfig'
 
-import { DemoBadge } from '@/components/DemoBadge';
-import { AllLocales } from '@/utils/AppConfig';
-
-// ──────────────────────────────────────────────
-// SEO genérico; pode ficar como estava
-export const metadata: Metadata = { /* …icons… */ };
-
-// gera rotas estáticas p/ SSG
+// Gera /pt-BR, /en, /fr…
 export function generateStaticParams() {
-  return AllLocales.map(locale => ({ locale }));
+  return AllLocales.map((locale) => ({ locale }))
 }
 
-// ──────────────────────────────────────────────
-// Layout por idioma
+// Metadados genéricos (favicon, etc). Se quiser i18n também aqui, use generateMetadata.
+export const metadata: Metadata = {
+  // … seu <head> estático …
+}
+
 export default async function LocaleLayout({
   children,
-  params,                          // virou Promise no Next 15
+  params,             // já sincronizado aqui
 }: {
-  children: React.ReactNode;
-  params: Promise<{ locale: string }>;
+  children: ReactNode
+  params: { locale: string }
 }) {
-  const { locale } = await params;
+  const { locale } = params
 
-  // valida locale
-  if (!hasLocale(AllLocales, locale)) {
-    notFound();
+  // Se vier outro idioma, 404
+  if (!AllLocales.includes(locale)) {
+    notFound()
   }
 
-  // informa ao next-intl qual idioma resolver
-  setRequestLocale(locale);
+  // Carrega as mensagens geradas pelo plugin next-intl
+  const messages = await getMessages(locale)
 
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <body
-        className="bg-background text-foreground antialiased"
-        suppressHydrationWarning
-      >
-        {/* O plugin next-intl já injeta as mensagens automaticamente */}
-        <NextIntlClientProvider>
+    <html lang={locale}>
+      <body>
+        <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
-          <DemoBadge />
         </NextIntlClientProvider>
       </body>
     </html>
-  );
+  )
 }
