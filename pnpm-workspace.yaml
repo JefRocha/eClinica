@@ -1,0 +1,10 @@
+onlyBuiltDependencies:
+  - '@clerk/shared'
+  - '@percy/core'
+  - '@sentry/cli'
+  - '@swc/core'
+  - core-js-pure
+  - esbuild
+  - sharp
+  - unrs-resolver
+  - yarn
